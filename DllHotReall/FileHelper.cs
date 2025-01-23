@@ -62,11 +62,7 @@ namespace DllHotReall
         //更新程序  集
         public static void Reload( object sender, FileSystemEventArgs e)
         {
-            var path = e.FullPath;
-            if (!Tools.InAssemblies(path)) {
-                return;
-            }
-
+            var path=e.FullPath;
             //去签名处理
            FileLog.Write("触发更新 "+ path);
            var loadedAssembly = Definition.Start(path);

@@ -33,6 +33,7 @@ namespace DllHotReall
 
             if (onChangedHandler != null)
             {
+
                 watcher.Changed += (sender, e) => HandleFileChange(e, onChangedHandler);
             }
 
@@ -42,6 +43,12 @@ namespace DllHotReall
 
         private static void HandleFileChange(FileSystemEventArgs e, FileSystemEventHandler onChangedHandler)
         {
+
+            var path = e.FullPath;
+            if (!Tools.InAssemblies(path))
+            {
+                return;
+            }
             lock (lockObj)
             {
                 // 获取当前时间
@@ -60,7 +67,7 @@ namespace DllHotReall
                 // 创建新的防抖计时器，延迟 200 毫秒后执行
                 debounceTimer = new Timer(_ =>
                 {
-                    FileLog.Write("立即执行");
+                    FileLog.Write("立即执行"+ onChangedHandler.ToString());
                     lock (lockObj)
                     {
                         lastTriggeredTime = DateTime.Now;
