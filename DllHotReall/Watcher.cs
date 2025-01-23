@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
 using Verse;
 
 namespace DllHotReall
@@ -9,7 +10,9 @@ namespace DllHotReall
     internal class Watcher
     {
         private static FileSystemWatcher watcher;
-        //public static event Action<List<string>> OnFilesChanged;
+        private static Timer debounceTimer;
+        private static DateTime lastTriggeredTime;
+        private static readonly object lockObj = new object();
 
         public static void StartFileWatcher(FileSystemEventHandler onChangedHandler)
         {
@@ -30,11 +33,43 @@ namespace DllHotReall
 
             if (onChangedHandler != null)
             {
-                watcher.Changed += onChangedHandler;
+                watcher.Changed += (sender, e) => HandleFileChange(e, onChangedHandler);
             }
 
             watcher.EnableRaisingEvents = true;
             FileLog.Write($"文件监听启动{modsDirectory}");
         }
+
+        private static void HandleFileChange(FileSystemEventArgs e, FileSystemEventHandler onChangedHandler)
+        {
+            lock (lockObj)
+            {
+                // 获取当前时间
+                DateTime now = DateTime.Now;
+
+                // 如果上次触发时间距离现在小于 2 秒，直接忽略
+                if ((now - lastTriggeredTime).TotalSeconds < 2)
+                {
+                    FileLog.Write($"触发小于两秒忽略");
+                    return;
+                }
+
+                // 如果防抖计时器已存在，重置它
+                debounceTimer?.Dispose();
+
+                // 创建新的防抖计时器，延迟 200 毫秒后执行
+                debounceTimer = new Timer(_ =>
+                {
+                    FileLog.Write("立即执行");
+                    lock (lockObj)
+                    {
+                        lastTriggeredTime = DateTime.Now;
+                        onChangedHandler?.Invoke(null, e); // 执行处理逻辑
+
+                    }
+                }, null, 200, Timeout.Infinite);
+            }
+        }
     }
+
 }
