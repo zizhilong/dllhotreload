@@ -1,4 +1,5 @@
-﻿using System;
+﻿using RimWorld;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -31,10 +32,12 @@ namespace DllHotReall
         public static bool InAssemblies(string path)
         {
             var directoryPath = Path.GetDirectoryName(path);
-            return (directoryPath != null && Path.GetFileName(directoryPath) == "Assemblies");
+            return (directoryPath != null && Path.GetFileName(directoryPath) == "Assemblies" );
         }
         public static void ModLog(string str) {
             Log.Message("DllHotReload:"+str);
+            //Messages.Message("DllHotReload: " + str, MessageTypeDefOf.PositiveEvent);
+
         }
     }
 }

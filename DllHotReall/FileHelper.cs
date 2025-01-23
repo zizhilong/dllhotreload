@@ -30,13 +30,10 @@ namespace DllHotReall
         static  FileHelps()
         {
             Watcher.StartFileWatcher(Reload);
-            FileLog.Write("Stear");
-            ClearRuning();
+            FileLog.Write("Start");
             Run();
             //HandleFileChange("C:\\Users\\ZZL\\Desktop\\MOD类型\\dnspy\\DllHotReload.dll");
         }
-
-
         // 定义一个委托，用于替换方法的劫持
         internal delegate void DetourMethodDelegate(MethodBase method, MethodBase replacement);
 
@@ -57,11 +54,10 @@ namespace DllHotReall
         public static void Run() {
             //加载目标Dll清单
             string[] dllfiles = GetRuningDll(); // 模拟获取已加载的DLL文件路径
+            ClearRuning();
             MoveFiles(dllfiles);
             MoveFiles(dllfiles);
             MarkMethhodMap();
-           
-
         }
         //更新程序  集
         public static void Reload( object sender, FileSystemEventArgs e)
