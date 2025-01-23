@@ -20,7 +20,7 @@ namespace DllHotReall
 
             if (!Directory.Exists(modsDirectory))
             {
-                throw new DirectoryNotFoundException($"目录不存 在 : {modsDirectory}");
+                throw new DirectoryNotFoundException($"目录不存在 : {modsDirectory}");
             }
 
             watcher = new FileSystemWatcher
