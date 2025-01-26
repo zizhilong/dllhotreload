@@ -1,8 +1,10 @@
-﻿using RimWorld;
+﻿using HarmonyLib;
+using RimWorld;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
@@ -38,6 +40,31 @@ namespace DllHotReall
             Log.Message("DllHotReload:"+str);
             //Messages.Message("DllHotReload: " + str, MessageTypeDefOf.PositiveEvent);
 
+        }
+        public static bool IsHarmony(string path) { 
+
+            if(path.Contains("<Postfix>") || 
+                path.Contains("<Apply>" ) || 
+                path.Contains("<fixMorphAbility>") ||
+                path.Contains("<ConfigErrors>")||
+                path.Contains("<GetWarnings>")||
+                path.Contains("<>")
+                //
+                ) {
+                return true;
+            }
+
+            return false;
+        }
+        public static bool CheckMethodsForHarmonyPatch(MethodBase method)
+        {
+            // 检查方法是否带有 HarmonyPatch 属性
+            var harmonyPatchAttributes = method.GetCustomAttributes(typeof(HarmonyPatch), false);
+            if (harmonyPatchAttributes.Length > 0)
+            {
+                    return true;
+            }
+            return false;
         }
     }
 }

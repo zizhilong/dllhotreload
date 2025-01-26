@@ -7,6 +7,7 @@ using Verse;
 
 namespace DllHotReall
 {
+    /*
     internal class Watcher
     {
         private static FileSystemWatcher watcher;
@@ -18,11 +19,11 @@ namespace DllHotReall
         {
             string modsDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Mods");
 
+
             if (!Directory.Exists(modsDirectory))
             {
                 throw new DirectoryNotFoundException($"目录不存在 : {modsDirectory}");
             }
-
             watcher = new FileSystemWatcher
             {
                 Path = modsDirectory,
@@ -30,19 +31,31 @@ namespace DllHotReall
                 NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.FileName,
                 IncludeSubdirectories = true
             };
+            watcher.Changed += (sender, e) => HandleFileChange(e, onChangedHandler);
 
-            if (onChangedHandler != null)
-            {
-
-                watcher.Changed += (sender, e) => HandleFileChange(e, onChangedHandler);
-            }
+            watcher.Created += OnFileCreated;
 
             watcher.EnableRaisingEvents = true;
             FileLog.Write($"文件监听启动{modsDirectory}");
         }
 
+     private static void OnFileCreated(object sender, FileSystemEventArgs e)
+    {
+            // 获取文件的完整路径
+            string rawPath = e.FullPath;
+
+            // 解析并规范化路径（保留文件名）
+            string resolvedPath = Path.GetFullPath(rawPath);
+
+            // 输出结果
+            FileLog.Write($"文件创建事件: {resolvedPath}");
+
+    }
+
         private static void HandleFileChange(FileSystemEventArgs e, FileSystemEventHandler onChangedHandler)
         {
+
+            FileLog.Write("触发Changed");
 
             var path = e.FullPath;
             if (!Tools.InAssemblies(path))
@@ -78,5 +91,6 @@ namespace DllHotReall
             }
         }
     }
+    */
 
 }

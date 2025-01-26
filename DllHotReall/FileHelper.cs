@@ -29,8 +29,9 @@ namespace DllHotReall
         
         static  FileHelps()
         {
-            Watcher.StartFileWatcher(Reload);
-            FileLog.Write("Start");
+            //Watcher.StartFileWatcher(Reload);
+            FileMonitor.OnFileChanged = Reload;
+            FileLog.Write("Start  V0.0.1");
             Run();
             //HandleFileChange("C:\\Users\\ZZL\\Desktop\\MOD类型\\dnspy\\DllHotReload.dll");
         }
@@ -52,17 +53,17 @@ namespace DllHotReall
 
 
         public static void Run() {
+            FileLog.Clear();
             //加载目标Dll清单
             string[] dllfiles = GetRuningDll(); // 模拟获取已加载的DLL文件路径
             ClearRuning();
             MoveFiles(dllfiles);
-            MoveFiles(dllfiles);
+            //MoveFiles(dllfiles);
             MarkMethhodMap();
         }
         //更新程序  集
-        public static void Reload( object sender, FileSystemEventArgs e)
+        public static void Reload(string path)
         {
-            var path=e.FullPath;
             //去签名处理
            FileLog.Write("触发更新 "+ path);
            var loadedAssembly = Definition.Start(path);
@@ -91,25 +92,26 @@ namespace DllHotReall
                {
 
                    MethodIlInfo newMethodInfo = ilMap[originaId];
-                    MethodIlInfo existingMethodInfo = originalMethodMap[originaId];
-                   if (existingMethodInfo.IlHash != newMethodInfo.IlHash)
-                   {
-                        FileLog.Write("更新函数"+ originaId);
+                   MethodIlInfo existingMethodInfo = originalMethodMap[originaId];
+                    //if (existingMethodInfo.IlHash != newMethodInfo.IlHash)
+                    //{
+                    FileLog.Write("更新函数"+ originaId);
                         DetourMethod(existingMethodInfo.Method, newMethodInfo.Method);
-                   }
-               }
-           }
+                    //}
+                }
+            }
 
            //输出完成提示新小米
             var filename = Path.GetFileName(path);
             FileLog.Write(path + "完成");
+            Messages.Message(filename + " Reload Over", MessageTypeDefOf.PositiveEvent);
             Tools.ModLog(filename+" Reload Over");
         }
         public static void MoveFiles(string[] dllfiles)
         {
             foreach (var dllFile in dllfiles)
             { 
-                FileLog.Write("移动文件: " + dllFile);
+                FileLog.Write("移动文件:" + dllFile);
                 MoveFile(dllFile);
             }
         }
@@ -127,18 +129,14 @@ namespace DllHotReall
                     string methodId = kvp.Key;
 
                     // 检查键是否存在
-                    if (!originalMethodMap.ContainsKey(methodId))
+                    if (!originalMethodMap.ContainsKey(methodId) && !Tools.IsHarmony(methodId))
                     {
                         // 如果不存在，则添加到 originalMethodMap
                         originalMethodMap[methodId] = kvp.Value;
                     }
-                    else
-                    {
-
-                    }
                 }
             }
-            FileLog.Write($"方法Map总量为: {originalMethodMap.Count}");
+            FileLog.Write($"方法Map总量为 : {originalMethodMap.Count}");
             FileLog.Write("keys: "+originalMethodMap.Keys.ToArray().ToString());
             Tools.ModLog($"Is Ready ,Method Count Is {originalMethodMap.Count}");
         }
@@ -177,19 +175,19 @@ namespace DllHotReall
                         }
                         ilMap[methodId] = new MethodIlInfo
                         {
-                            IlHash = Tools.ComputeHash(method.GetMethodBody().GetILAsByteArray()),
+                            //IlHash = //Tools.ComputeHash(method.GetMethodBody().GetILAsByteArray()),
                             Method = method
                         };
                     }
                     catch (Exception ex)
                     {
                         // 记录异常日志 
-                        FileLog.Write($"An error   occurred: {ex.Message}");
+                        //FileLog.Write($"An error   occurred: {ex.Message}");
                         // 处理异常或提供默认值
                     }
                 }
-                FileLog.Write("type循环结束");
             }
+            FileLog.Write($"获取了 {ilMap.Count} 个 IL map");
             return ilMap;
         }
 
@@ -290,6 +288,7 @@ namespace DllHotReall
             // 定义 Mods 文件夹路径
             string modsPath = Path.Combine(mainDirectory, "Mods");
 
+
             // 检查 Mods 文件夹是否存在
             if (!Directory.Exists(modsPath))
             {
@@ -309,15 +308,20 @@ namespace DllHotReall
                     {
                         // 获取程序集的主体文件路径
                         string location = assembly.Location;
+                        ; 
 
                         // 判断路径是否包含 modsPath
-                        if (!string.IsNullOrEmpty(location) && location.StartsWith(modsPath, StringComparison.OrdinalIgnoreCase))
+                        if (!string.IsNullOrEmpty(location) && Path.GetFullPath(location).StartsWith(modsPath, StringComparison.OrdinalIgnoreCase))
                         {
                             string fileName = Path.GetFileName(location);
+                            //if (fileName.StartsWith("System.")) return null;
+                            if (fileName.StartsWith("HarmonyMod.")) return null;
+                            if (fileName.StartsWith("0Harmony")) return null;
                             // 添加到静态字典
-                            if (!dllAssemblyMap.ContainsKey(fileName))
+                            if (!dllAssemblyMap.ContainsKey(Path.GetFullPath(fileName)))
                             {
                                 FileLog.Write("启动加载DLL文件"+ fileName);
+                                FileMonitor.Add(location);
                                 dllAssemblyMap.Add(fileName, assembly);
                             }
                             return location;

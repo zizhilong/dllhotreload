@@ -13,6 +13,13 @@ namespace DllHotReall
         private static readonly object LockObject = new object();
 
         private static string LogFilePath =Tools.ModPath("dllreload.log"); // 默认日志文件路径
+        public static void Clear() {
+
+            if (File.Exists(LogFilePath))
+            {
+                File.Delete(LogFilePath);
+            }
+        }
         public static void Write(string message)
         {
             lock (LockObject)
@@ -21,7 +28,6 @@ namespace DllHotReall
                 {
                     string logEntry = $"{DateTime.Now: HH:mm:ss} {message}";
                     File.AppendAllText(LogFilePath, logEntry + Environment.NewLine);
-                    Console.WriteLine(logEntry); // 可选：同时输出到控制台
                 }
                 catch (Exception ex)
                 {
